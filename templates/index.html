@@ -1,0 +1,118 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Flask-SocketIO Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+            integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg=="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
+            integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
+            crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            var socket = io();
+
+            socket.on('connect', function () {
+                socket.emit('connect_event', {data: 'I\'m connected!'});
+            });
+
+            socket.on('server_update', function (msg, cb) {
+                $('#log').append('<br>' + $('<div/>').text('Server Update: ' + msg.data).html());
+                if (cb)
+                    cb();
+            });
+
+            socket.on("new_audio", function (msg, cb) {
+                var audio = document.getElementById("myAudio");
+                var audioSource = document.getElementById("audioSource");
+
+
+                var file_url = msg.audio.replace("\\", "/").replace("C:/", "http://localhost:5000/static/");
+                audioSource.src = file_url;
+                audio.load();
+
+                $('#audioContainer').show();
+
+
+                $('#acceptAndSendAudio').off('click').on('click', function (event) {
+                    event.preventDefault();
+                    socket.emit("client_audio_decision", {
+                        action: 'accept',
+                        audio: msg.audio,
+                        receiver: $('#receiver_phone_number_audio').val()
+                    });
+                    $('#receiver_phone_number_audio').val('');
+                    $('#audioContainer').hide();
+                });
+
+                $('#rejectAndRegenerate').off('click').on('click', function (event) {
+                    event.preventDefault();
+                    socket.emit("client_audio_decision", {
+                        action: 'reject',
+                        audio: msg.audio,
+                        receiver: $('#receiver_phone_number_audio').val()
+                    });
+                    $('#receiver_phone_number_audio').val('');
+                    $('#audioContainer').hide();
+                });
+
+                if (cb)
+                    cb();
+            });
+
+            $('form#emit').submit(function (event) {
+                event.preventDefault();
+                socket.emit('new_message',
+                    {
+                        message: $('#emit_data').val(),
+                        receiver: $('#receiver_phone_number_text').val()
+                    });
+                $('#emit_data').val('');
+                $('#receiver_phone_number_text').val('');
+            });
+
+            $('form#audio').submit(function (event) {
+                event.preventDefault();
+                socket.emit('new_audio_generation',
+                    {
+                        tts: $('#text_to_speech').val(),
+                    });
+                $('#text_to_speech').val('');
+            });
+        });
+    </script>
+</head>
+<body>
+<h1>Flask-SocketIO Test</h1>
+<h2>Send:</h2>
+
+<form id="emit" method="POST" action='#'>
+    <input type="text" name="emit_data" id="emit_data" placeholder="Message">
+    <input type="text" name="receiver" id="receiver_phone_number_text" placeholder="Receiver Phone Number">
+    <input type="submit" value="Send Text">
+</form>
+
+<form id="audio" method="POST" action='#'>
+    <input type="text" name="emit_data" id="text_to_speech" placeholder="Text to Speech">
+    <input type="text" name="receiver" id="receiver_phone_number_audio" placeholder="Receiver Phone Number">
+    <input type="submit" value="Generate Audio">
+</form>
+
+<div id="audioContainer" style="display: none;">
+    <audio id="myAudio" controls>
+        <source id="audioSource" type="audio/mpeg" src="">
+        Your browser does not support the audio element.
+    </audio>
+    <button type="button" id="acceptAndSendAudio">Accept and Send Audio</button>
+    <button type="button" id="rejectAndRegenerate">Reject and Regenerate Audio</button>
+</div>
+
+<form id="disconnect" method="POST" action="#">
+    <input type="submit" value="Disconnect">
+</form>
+
+<h2>Updates:</h2>
+<div id="log"></div>
+
+</body>
+</html>
