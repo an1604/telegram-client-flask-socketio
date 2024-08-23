@@ -12,6 +12,9 @@ message_tuple = None
 new_audio_event = threading.Event()
 audio_tuple = None
 
+ask_for_new_messages_event = threading.Event()
+new_messages = None
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode=None)
@@ -31,6 +34,8 @@ async def manual_send_audio(client, receiver, audio):
 def background_thread():
     print("Starting background thread...")
     global new_message_event, message_tuple, socketio
+    global audio_tuple, new_audio_event
+    global ask_for_new_messages_event, new_messages
 
     client = Client(default_app_id, default_app_hash, "+972522464648")
     print("Client connected")
@@ -52,6 +57,13 @@ def background_thread():
             )
             socketio.emit('server_update',
                           {'data': f'Record {audio_tuple[1]} Successfully Sent to {audio_tuple[0]} :)'})
+        if ask_for_new_messages_event.is_set():
+            ask_for_new_messages_event.clear()
+            new_messages = client.get_messages()
+
+            print(f"from back: {new_messages}")
+            socketio.emit('server_update',
+                          {'data': 'New messages requests handled'})
 
 
 @app.route('/')
@@ -73,20 +85,6 @@ def connect_event(data):
     with thread_lock:
         if thread is None:
             thread = socketio.start_background_task(background_thread)
-
-
-@socketio.event
-def disconnect_request():
-    @copy_current_request_context
-    def can_disconnect():
-        disconnect()
-
-    emit('server_update', {'data': 'Disconnected'})
-
-
-@socketio.on('disconnect')
-def test_disconnect():
-    print('Client disconnected', request.sid)
 
 
 @socketio.on("new_message")
@@ -120,6 +118,17 @@ def handle_audio_decision(data):
         emit("server_update", {'data': "Client has accepted the audio"}, broadcast=True)
     else:
         emit("server_update", {'data': 'Client has not accepted the audio'}, broadcast=True)
+
+
+@socketio.on('ask_for_new_messages')
+def handle_ask_for_new_messages():
+    global ask_for_new_messages_event, new_messages
+    ask_for_new_messages_event.set()
+    print(f"from handle_ask_for_new_messages --> {new_messages}")
+    emit("new_messages_update",
+         {'data': new_messages},
+         broadcast=True)
+    new_messages = None
 
 
 if __name__ == '__main__':

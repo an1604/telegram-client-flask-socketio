@@ -21,21 +21,24 @@ class Client(object):
         self.client = TelegramClient('session_name', self.app_id, self.app_hash)
         self.initialize_client()
 
-    def handle_routes(self):
-        @self.client.on(events.NewMessage)
+    def handle_routes(self, client):
+        print(f"handle_routes called with client {client}")
+
+        @client.on(events.NewMessage)
         async def handle_new_message(event):
-            message = event.message.message  # Extract the message text
-            self.messages_received.append(message)
+            message = event.message.message
             print(f'New message received: {message}')
+            self.messages_received.append(message)
 
     def initialize_client(self):
+        self.handle_routes(self.client)
+
         self.loop.create_task(self.run_client())  # Run the telegram client as a background task
-        print('Client initialized')
+        print("Added run_client to the loop")
 
     async def run_client(self):
         try:
             await self.client.start(phone=self.phone_number)
-            self.handle_routes()
             print('Client is running...')
             await self.client.run_until_disconnected()
         except errors.AuthKeyUnregisteredError:
@@ -49,6 +52,7 @@ class Client(object):
     async def send_message(self, receiver, message):
         try:
             await self.client.connect()
+            self.handle_routes(self.client)
             await self.client.send_message(receiver, message)
             print(f'Message sent: {message}')
         except errors.AuthKeyUnregisteredError:
@@ -59,6 +63,7 @@ class Client(object):
     async def send_audio(self, receiver, audiofile_path):
         try:
             await self.client.connect()
+            self.handle_routes(self.client)
             if await self.client.is_user_authorized():
                 if audiofile_path and os.path.exists(audiofile_path):
                     print("Audio file found!")

@@ -8,6 +8,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
             integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
             crossorigin="anonymous"></script>
+    <style>
+        /* CSS Flexbox to align log and new_messages side by side */
+        #container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #log {
+            width: 50%;
+            margin-right: 20px; /* Add space between the divs */
+        }
+
+        #new_messages {
+            width: 45%; /* Adjust the width as necessary */
+        }
+    </style>
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function () {
             var socket = io();
@@ -22,17 +38,26 @@
                     cb();
             });
 
+            socket.on("new_messages_update", function (msg, cb) {
+                $('#messages_received').val('')
+                const messages = msg.data;
+                for (const i in messages) {
+                    $('#messages_received').append('<br>' + $('<div/>').text('New Message: ' + messages[i]).html());
+                }
+                if (cb) {
+                    cb();
+                }
+            })
+
             socket.on("new_audio", function (msg, cb) {
                 var audio = document.getElementById("myAudio");
                 var audioSource = document.getElementById("audioSource");
-
 
                 var file_url = msg.audio.replace("\\", "/").replace("C:/", "http://localhost:5000/static/");
                 audioSource.src = file_url;
                 audio.load();
 
                 $('#audioContainer').show();
-
 
                 $('#acceptAndSendAudio').off('click').on('click', function (event) {
                     event.preventDefault();
@@ -80,6 +105,11 @@
                 $('#text_to_speech').val('');
             });
 
+            $('form#ask_for_new_messages').submit(function (event) {
+                event.preventDefault();
+                socket.emit('ask_for_new_messages')
+                return false
+            });
 
         });
     </script>
@@ -109,8 +139,17 @@
     <button type="button" id="rejectAndRegenerate">Reject and Regenerate Audio</button>
 </div>
 
-<h2>Updates:</h2>
-<div id="log"></div>
+<!-- Container for log and new messages divs -->
+<div id="container">
+    <div id="log"></div>
+
+    <div id="new_messages">
+        <form id="ask_for_new_messages" method="POST" action="#">
+            <div id="messages_received"></div>
+            <input type="submit" value="Check If You Got New Messages">
+        </form>
+    </div>
+</div>
 
 </body>
 </html>
