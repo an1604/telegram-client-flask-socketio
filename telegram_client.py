@@ -66,3 +66,11 @@ class Client(object):
                 asyncio.set_event_loop(self.loop)
             else:
                 raise
+
+    async def stop_client(self):
+        if self.loop:
+            self.loop.close()
+            self.loop = None
+        self.client.disconnect()
+        print('Client disconnected')
+

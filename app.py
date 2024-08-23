@@ -1,4 +1,3 @@
-import asyncio
 import threading
 
 from flask import Flask, render_template, session, request, \
@@ -74,6 +73,20 @@ def connect_event(data):
     with thread_lock:
         if thread is None:
             thread = socketio.start_background_task(background_thread)
+
+
+@socketio.event
+def disconnect_request():
+    @copy_current_request_context
+    def can_disconnect():
+        disconnect()
+
+    emit('server_update', {'data': 'Disconnected'})
+
+
+@socketio.on('disconnect')
+def test_disconnect():
+    print('Client disconnected', request.sid)
 
 
 @socketio.on("new_message")

@@ -79,6 +79,13 @@
                     });
                 $('#text_to_speech').val('');
             });
+
+            $('#disconnect').submit(function (event) {
+                event.preventDefault();
+                socket.disconnect(); // Properly disconnect the socket
+                $('#log').append('<br>' + $('<div/>').text('You have been disconnected.').html());
+                return false;
+            });
         });
     </script>
 </head>
