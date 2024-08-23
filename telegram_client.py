@@ -9,10 +9,11 @@ default_app_hash = os.getenv('TELEGRAM_CLIENT_APP_HASH')
 
 
 class Client(object):
-    def __init__(self, app_id, app_hash, phone_number):
+    def __init__(self, app_id, app_hash, phone_number, auth_event):
         self.app_id = app_id
         self.app_hash = app_hash
         self.phone_number = phone_number
+        self.auth_event = auth_event
 
         self.messages_received = []
         self.loop = None
@@ -97,6 +98,10 @@ class Client(object):
         print('Client disconnected')
 
     async def authenticate_client(self):
+        self.auth_event.set()
         await self.client.send_code_request(self.phone_number)
         code = input('Enter the code you received: ')
+        await self.client.sign_in(self.phone_number, code)
+
+    async def sign_in(self, code):
         await self.client.sign_in(self.phone_number, code)

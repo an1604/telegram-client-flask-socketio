@@ -38,6 +38,17 @@
                     cb();
             });
 
+            socket.on("client_auth", function (msg, cb) {
+                alert("Authentication needed, please check out Telegram and provide the code that you've received:");
+                var authCode = prompt("Enter the Telegram authentication code:");
+                if (authCode) {
+                    socket.emit("auth_code", {code: authCode});
+                }
+                if (cb) {
+                    cb();
+                }
+            });
+
             let displayedMessages = [];
             socket.on("new_messages_update", function (msg, cb) {
                 $('#messages_received').val('')
