@@ -38,11 +38,15 @@
                     cb();
             });
 
+            let displayedMessages = [];
             socket.on("new_messages_update", function (msg, cb) {
                 $('#messages_received').val('')
                 const messages = msg.data;
                 for (const i in messages) {
-                    $('#messages_received').append('<br>' + $('<div/>').text('New Message: ' + messages[i]).html());
+                    if (!displayedMessages.includes(messages[i])) {
+                        $('#messages_received').append('<br>' + $('<div/>').text('New Message: ' + messages[i]).html());
+                        displayedMessages.push(messages[i]);  // Add to the list of displayed messages
+                    }
                 }
                 if (cb) {
                     cb();

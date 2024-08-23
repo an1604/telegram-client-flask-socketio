@@ -128,7 +128,6 @@ def handle_ask_for_new_messages():
     emit("new_messages_update",
          {'data': new_messages},
          broadcast=True)
-    new_messages = None
 
 
 if __name__ == '__main__':
