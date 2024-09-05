@@ -33,7 +33,7 @@ To set up and run the Flask Telegram Client, follow these steps:
    ```
 
 3. **Ensure the remote server is running**:  
-   Make sure that the WhisperSpeech remote server is up and waiting for requests. You can find the WhisperSpeech remote server setup instructions in the [Deceptify project directory]([https://github.com/yourusername/Deceptify/tree/main/WhisperSpeech](https://github.com/an1604/Deceptify/tree/main/WhisperSpeech)).
+   Make sure that the WhisperSpeech remote server is up and waiting for requests. You can find the WhisperSpeech remote server setup instructions in the [Deceptify project directory](https://github.com/an1604/Deceptify/tree/main/WhisperSpeech).
 
 ## Usage
 
