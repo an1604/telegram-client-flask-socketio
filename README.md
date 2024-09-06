@@ -1,4 +1,4 @@
-# Flask Telegram Client Demo
+#  Telegram Client Demo
 
 This Flask-based demo application integrates with a Telegram client to automate sending and receiving text messages and audio files. The app features a web UI that dynamically updates as it interacts with Telegram, allowing users to send and receive messages and audio in real-time.
 
